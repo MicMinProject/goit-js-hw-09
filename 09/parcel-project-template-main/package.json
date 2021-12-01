@@ -31,6 +31,7 @@
     "lodash": "^4.17.21",
     "lodash.throttle": "^4.1.1",
     "node": "^16.10.0",
+    "notiflix": "^3.2.2",
     "s": "^1.0.0",
     "simplelightbox": "^2.8.1"
   }

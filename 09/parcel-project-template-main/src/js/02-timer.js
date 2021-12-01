@@ -1,14 +1,23 @@
-import flatpickr from '../../node_modules/flatpickr/dist/flatpickr';
+import flatpickr from 'flatpickr';
+// Dodatkowy import stylów
 import 'flatpickr/dist/flatpickr.min.css';
+import {throttle} from 'lodash';
 
-const inputDate=document.querySelector('input');
-const start=document.querySelector('button[data-start]');
-const timeDays=document.querySelector('span[data-days]');
-const timeHours=document.querySelector('span[data-hours]');
-const timeMinutes=document.querySelector('span[data-minutes]');
-const timeSeconds=document.querySelector('span[data-seconds]');
+const picker=document.querySelector('#datetime-picker');
+const daysCounter=document.querySelector('span[data-days]');
+const hoursCounter=document.querySelector('span[data-hours]');
+const minutesCounter=document.querySelector('span[data-minutes]');
+const secondsCounter=document.querySelector('span[data-seconds]');
+const button=document.querySelector('button[data-start]');
+button.disabled=true
+let selectedTimeMS=null;
 
-start.disabled=true;
+function addLeadingZero(value){
+  if(value<10){
+  return value.padStart(2,'0')
+  } else{return value}
+}
+  
 
 function convertMs(ms) {
   // Number of milliseconds per unit of time
@@ -25,56 +34,45 @@ function convertMs(ms) {
   const minutes = Math.floor(((ms % day) % hour) / minute);
   // Remaining seconds
   const seconds = Math.floor((((ms % day) % hour) % minute) / second);
+
   return { days, hours, minutes, seconds };
 }
+
+convertMs(2000); // {days: 0, hours: 0, minutes: 0, seconds: 2}
+convertMs(140000); // {days: 0, hours: 0, minutes: 2, seconds: 20}
+convertMs(24140000); // {days: 0, hours: 6 minutes: 42, seconds: 20}
 
 const options = {
   enableTime: true,
   time_24hr: true,
   defaultDate: new Date(),
   minuteIncrement: 1,
-  onClose(selectedDates) {
-   let selectedDate= selectedDates[0].getTime();
-   let date= new Date();
-   let currentDate= date.getTime();
-
-   if(selectedDate<=currentDate){
-     alert("Please choose a date in the future");
-     start.disabled=true;
-   } else{
-     start.disabled=false;
-     const countdown=e=>{
-       e.preventDefault();
-       let counter=setInterval(()=>{
-         let ms=selectedDate-new Date().getTime();
-         start.disabled=true;
-         convertMs(ms);
-
-         timeDays.textContent=addLeadingZero(String(convertMs(ms).days));
-         timeHours.textContent=addLeadingZero(String(convertMs(ms).hours));
-         timeMinutes.textContent=addLeadingZero(String(convertMs(ms).minutes));
-         timeSeconds.textContent=addLeadingZero(String(convertMs(ms).seconds));
-
-         if(timeDays.textContent==="00"&&
-            timeHours.textContent==='00'&&
-            timeMinutes.textContent==='00'&&
-            timeSeconds.textContent==='00'){
-              console.log('Counting stopped');
-              clearInterval(counter)
-            }
-       },1000)
-     }
-     start.addEventListener('click',countdown);
-   }
-  }, 
+  minDate: "today",
+    onClose(selectedDates) {
+    if(new Date().getTime()>=selectedDates[0].getTime()){
+      alert('Please choose a date in the future')
+    }else{button.disabled=false};
+    selectedTimeMS=selectedDates[0].getTime();
+    
+    button.addEventListener('click',(e)=>{
+      e.currentTarget.disabled=true;
+     const timerId=setInterval((e)=>{
+        const currentTimeMs=new Date().getTime()
+      daysCounter.innerHTML=addLeadingZero(String(convertMs(selectedTimeMS-currentTimeMs).days));
+      hoursCounter.innerHTML=addLeadingZero(String(convertMs(selectedTimeMS-currentTimeMs).hours));
+      minutesCounter.innerHTML=addLeadingZero(String(convertMs(selectedTimeMS-currentTimeMs).minutes));
+      secondsCounter.innerHTML=addLeadingZero(String(convertMs(selectedTimeMS-currentTimeMs).seconds));
+      
+      if(daysCounter.innerHTML==="00"&&hoursCounter.innerHTML==="00"&&minutesCounter.innerHTML==="00"&&secondsCounter.innerHTML==="00"){
+        clearInterval(timerId);
+          alert("Time's up!")
+        
+      }
+      },1000)
+    })
+    // console.log(convertMs(selectedTimeMS))
+    
+  },
 };
+flatpickr(picker,options);
 
-
-flatpickr(inputDate,options);
-
-function addLeadingZero(value){
-  if(value<10) {
-   return value.padStart(2,"0")
-  } return value;
-  
-}
