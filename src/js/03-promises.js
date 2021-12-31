@@ -7,7 +7,7 @@ const submitBtn=document.querySelector('button[type="submit"]');
 let delay;
 let stepDelay;
 const makePromise=(e)=>{
-  
+  e.preventDefault();
   setTimeout(()=>{for(let position=1;position<=inputAmount.value;position++){
     stepDelay=(position-1)*inputStep.value;
     delay=stepDelay+Number(inputDelay.value);
